@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:tns="http://inform.gazprom.ru/I/KSAD_SRGT/DIRECTUM/AgrCard"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             targetNamespace="http://inform.gazprom.ru/I/KSAD_SRGT/DIRECTUM/AgrCard">
+
+    <types>
+        <xsd:schema targetNamespace="http://inform.gazprom.ru/I/KSAD_SRGT/DIRECTUM/AgrCard"
+                    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                    elementFormDefault="qualified">
+вот я 
+            <!--
+                Структура записи договора (СОГЛАСНО ПРИЛОЖЕНИЮ 2)
+                ВСЕ ПОЛЯ ОБЯЗАТЕЛЬНЫЕ (1..1)
+                Порядок полей строго по проекту
+            -->
+            <xsd:complexType name="AgrCardRecord">
+                <xsd:sequence>
+                    <xsd:element name="IUSPTCard" type="xsd:string" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>№ договора ИУС П Т (обязательно, длина до 10)</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="DirectumCard" type="xsd:long" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>ИД Directum (обязательно, числовое поле до 6)</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="CR_ED" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Признак создания/изменения: "C" — создание, "E" — изменение</xsd:documentation>
+                        </xsd:annotation>
+                        <xsd:simpleType>
+                            <xsd:restriction base="xsd:string">
+                                <xsd:length value="1"/>
+                                <xsd:pattern value="[CE]"/>
+                            </xsd:restriction>
+                        </xsd:simpleType>
+                    </xsd:element>
+                    <xsd:element name="IUSPTCard_2" type="xsd:string" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>№ договора ИУС П Т (дубль, обязательно, длина до 10)</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Card_Date" type="xsd:date" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Дата договора (обязательно)</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="HistID" type="xsd:string" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Рег.номер в ист.сист (обязательно, длина до 10)</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="VendorCard" type="xsd:string" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>№Договора Контрагента (обязательно, длина до 10)</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="CardTitle" type="xsd:string" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Предмет договора (обязательно, длина до 255)</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="IUSPTVendor" type="xsd:string" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Контрагент ИУС П Т (обязательно, длина до 10)</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="CardKurator" type="xsd:string" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>СП-Куратора (обязательно, длина до 12)</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <!--
+                Корневой элемент запроса (ВХОДЯЩИЙ для Directum RX)
+                Содержит список записей Record (массовая передача)
+                Название строго по проекту: AgrCardReceiverRequest
+            -->
+            <xsd:element name="AgrCardReceiverRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="Record" type="tns:AgrCardRecord" minOccurs="1" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>Список карточек договоров (пакет до 5 МБ)</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <!--
+                Корневой элемент ответа (ВХОДЯЩИЙ для Directum RX)
+                Название строго по проекту: AgrCardReceiverResponse
+                Поля: Status (обязательно), Message (опционально)
+            -->
+            <xsd:element name="AgrCardReceiverResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="Status" type="xsd:string" minOccurs="1" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>Статус: "ACCEPTED" — принято, "REJECTED" — отклонено</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="Message" type="xsd:string" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>Детальное сообщение об ошибке или информационное сообщение</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+        </xsd:schema>
+    </types>
+
+    <!-- Сообщения -->
+    <message name="AgrCardReceiverRequest">
+        <part name="parameters" element="tns:AgrCardReceiverRequest"/>
+    </message>
+    <message name="AgrCardReceiverResponse">
+        <part name="parameters" element="tns:AgrCardReceiverResponse"/>
+    </message>
+
+    <!-- PortType — интерфейс (Inbound для Directum RX) -->
+    <portType name="AgrCardInPortType">
+        <operation name="AgrCardReceiverAsync">
+            <documentation>
+                Входящий интерфейс для передачи справочника договоров в КСАД Directum RX из ИУС П Т (Inbound).
+                Соответствует коду интерфейса AGR_CARD_IN.
+            </documentation>
+            <input message="tns:AgrCardReceiverRequest"/>
+            <output message="tns:AgrCardReceiverResponse"/>
+        </operation>
+    </portType>
+
+    <!-- Binding — привязка к SOAP -->
+    <binding name="AgrCardInBinding" type="tns:AgrCardInPortType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <operation name="AgrCardReceiverAsync">
+            <soap:operation soapAction="AgrCardReceiverAsync" style="document"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+    </binding>
+
+    <!-- Service — конечная точка на стороне КСАД Directum RX -->
+    <service name="AgrCardInService">
+        <port name="AgrCardInPort" binding="tns:AgrCardInBinding">
+            <soap:address location="https://<directum-host>:<port>/directum/ws/AgrCardReceiver"/>
+        </port>
+    </service>
+
+</definitions>

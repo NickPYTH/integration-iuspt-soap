@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:tns="http://inform.gazprom.ru/I/IUSPT/ERP/EDOVendor"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             targetNamespace="http://inform.gazprom.ru/I/IUSPT/ERP/EDOVendor">
+
+    <types>
+        <xsd:schema targetNamespace="http://inform.gazprom.ru/I/IUSPT/ERP/EDOVendor"
+                    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                    elementFormDefault="qualified">
+
+            <!--
+                Структура записи контрагента (СОГЛАСНО ПРИЛОЖЕНИЮ 1)
+                Поля: INN, KPP, FNS_ID, Vendor
+                Все обязательные (1..1)
+            -->
+            <xsd:complexType name="EDOVendorRecord">
+                <xsd:sequence>
+                    <xsd:element name="INN" type="xsd:string" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>ИНН (обязательно, длина до 25)</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="KPP" type="xsd:string" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>КПП (обязательно, длина до 9)</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="FNS_ID" type="xsd:string" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>ФНС ИД (обязательно, длина до 46)</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Vendor" type="xsd:string" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Код кредитора в ИУС П Т (обязательно, числовое поле 10)</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <!--
+                Корневой элемент запроса (ВХОДЯЩИЙ для ИУС П Т)
+                Содержит список записей Record (массовая передача)
+                Название строго по проекту: EDOVendorReceiverRequest
+            -->
+            <xsd:element name="EDOVendorReceiverRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="Record" type="tns:EDOVendorRecord" minOccurs="1" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>Список настроек контрагентов для ЭДО (пакет до 5 МБ)</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <!--
+                Корневой элемент ответа (ВХОДЯЩИЙ для ИУС П Т)
+                Название строго по проекту: EDOVendorReceiverResponse
+                Поля только: Status (обязательно), Message (опционально)
+                БЕЗ поля Error (его нет в проекте)
+            -->
+            <xsd:element name="EDOVendorReceiverResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="Status" type="xsd:string" minOccurs="1" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>Статус: "ACCEPTED" — принято, "REJECTED" — отклонено</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="Message" type="xsd:string" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>Детальное сообщение об ошибке или информационное сообщение</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+        </xsd:schema>
+    </types>
+
+    <!-- Сообщения -->
+    <message name="EDOVendorReceiverRequest">
+        <part name="parameters" element="tns:EDOVendorReceiverRequest"/>
+    </message>
+    <message name="EDOVendorReceiverResponse">
+        <part name="parameters" element="tns:EDOVendorReceiverResponse"/>
+    </message>
+
+    <!-- PortType — интерфейс (Inbound для ИУС П Т) -->
+    <portType name="EDOVendorInPortType">
+        <operation name="EDOVendorReceiverAsync">
+            <documentation>
+                Входящий интерфейс для получения настроек контрагентов для ЭДО в ИУС П Т из ЛИУС (Inbound).
+                Соответствует коду интерфейса EDO_VENDOR_IN.
+            </documentation>
+            <input message="tns:EDOVendorReceiverRequest"/>
+            <output message="tns:EDOVendorReceiverResponse"/>
+        </operation>
+    </portType>
+
+    <!-- Binding — привязка к SOAP -->
+    <binding name="EDOVendorInBinding" type="tns:EDOVendorInPortType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <operation name="EDOVendorReceiverAsync">
+            <soap:operation soapAction="EDOVendorReceiverAsync" style="document"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+    </binding>
+
+    <!-- Service — конечная точка на стороне ИУС П Т -->
+    <service name="EDOVendorInService">
+        <port name="EDOVendorInPort" binding="tns:EDOVendorInBinding">
+            <soap:address location="https://<iuspt-host>:<port>/sap/xi/ws/EDOVendorReceiver"/>
+        </port>
+    </service>
+
+</definitions>
